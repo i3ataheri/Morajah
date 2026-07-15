@@ -1270,6 +1270,9 @@ import Header from '../components/Header.astro';
         if (error) throw error;
       }
       showToast('تم حفظ الحضور بنجاح');
+      weekData[selectedDateStr] = { ...todayStatus };
+      weekExcused[selectedDateStr] = { ...todayExcused };
+      renderWeekly();
     } catch (err) {
       showToast('خطأ في حفظ البيانات');
       console.error(err);
