@@ -1,0 +1,1193 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+---
+
+<Layout title="الحضور والغياب | نظام الحضور والغياب">
+  <Header
+    title="قائمة الحضور والغياب"
+    subtitle="سجّل حالة حضور الطالبات"
+  />
+
+  <!-- PIN Overlay -->
+  <div id="pinOverlay" class="pin-overlay" style="display:none;">
+    <div class="pin-modal">
+      <div class="pin-icon">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+          <path d="M7 11V7a5 5 0 0110 0v4"/>
+        </svg>
+      </div>
+      <h2>تأكيد الهوية</h2>
+      <p>أدخل رمز الدخول للتسجيل</p>
+      <div class="pin-dots" id="pinDots">
+        <span class="dot"></span>
+        <span class="dot"></span>
+        <span class="dot"></span>
+        <span class="dot"></span>
+      </div>
+      <div class="pin-keypad" id="pinKeypad">
+        <button class="key" data-key="1">1</button>
+        <button class="key" data-key="2">2</button>
+        <button class="key" data-key="3">3</button>
+        <button class="key" data-key="4">4</button>
+        <button class="key" data-key="5">5</button>
+        <button class="key" data-key="6">6</button>
+        <button class="key" data-key="7">7</button>
+        <button class="key" data-key="8">8</button>
+        <button class="key" data-key="9">9</button>
+        <button class="key key-clear" data-key="clear">مسح</button>
+        <button class="key" data-key="0">0</button>
+      </div>
+      <div class="pin-error" id="pinError"></div>
+      <button class="pin-cancel" id="pinCancel">إلغاء</button>
+    </div>
+  </div>
+
+  <main class="attendance-section">
+    <div class="container">
+
+      <!-- Tab Switcher -->
+      <div class="tab-switcher">
+        <button class="tab-btn active" data-tab="daily">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+            <line x1="16" y1="2" x2="16" y2="6"/>
+            <line x1="8" y1="2" x2="8" y2="6"/>
+            <line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+          يومي
+        </button>
+        <button class="tab-btn" data-tab="weekly">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+          </svg>
+          أسبوعي
+        </button>
+      </div>
+
+      <!-- Daily Section -->
+      <div id="dailySection" class="tab-content">
+        <div class="day-header">
+          <div class="day-info">
+            <span class="day-name" id="dayName"></span>
+            <span class="day-date" id="dayDate"></span>
+          </div>
+          <button class="logout-btn" id="logoutBtn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
+              <polyline points="16 17 21 12 16 7"/>
+              <line x1="21" y1="12" x2="9" y2="12"/>
+            </svg>
+            خروج
+          </button>
+        </div>
+
+        <div class="search-box">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input type="text" id="dailySearch" class="input" placeholder="بحث عن اسم..." />
+        </div>
+
+        <div id="dailyList"></div>
+
+        <div class="save-section" id="dailySaveSection" style="display:none;">
+          <button class="btn btn-primary save-btn" id="dailySaveBtn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
+              <polyline points="17 21 17 13 7 13 7 21"/>
+              <polyline points="7 3 7 8 15 8"/>
+            </svg>
+            حفظ الحضور والغياب
+          </button>
+        </div>
+
+        <div class="closed-notice" id="dailyClosed" style="display:none;">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0110 0v4"/>
+          </svg>
+          <h3>النظام مغلق حالياً</h3>
+          <p>يفتح يومياً من الساعة ١٢ ظهراً حتى ٩ مساءً</p>
+        </div>
+      </div>
+
+      <!-- Weekly Section -->
+      <div id="weeklySection" class="tab-content">
+        <div class="week-header">
+          <div class="week-info-bar">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/>
+              <line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+            <span id="weeklyRange"></span>
+          </div>
+          <button class="saturday-toggle" id="saturdayToggle" data-active="false">
+            <span class="sat-label">السبت</span>
+            <span class="sat-status" id="satStatus">تعطيل</span>
+          </button>
+        </div>
+
+        <div class="search-box">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input type="text" id="weeklySearch" class="input" placeholder="بحث عن اسم..." />
+        </div>
+
+        <div id="weeklyList"></div>
+
+        <div class="copy-section" id="copySection" style="display:none;">
+          <button class="btn btn-primary" id="copyBtn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+              <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+            </svg>
+            نسخ القائمة
+          </button>
+          <div class="copy-preview" id="copyPreview" style="display:none;"></div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</Layout>
+
+<style lang="scss">
+  .attendance-section {
+    padding: 30px 20px 60px;
+  }
+
+  .pin-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+  }
+
+  .pin-modal {
+    background: white;
+    border-radius: 24px;
+    padding: 40px 32px;
+    text-align: center;
+    max-width: 340px;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  }
+
+  .pin-icon {
+    width: 70px;
+    height: 70px;
+    margin: 0 auto 16px;
+    background: linear-gradient(135deg, #f0fdfa, #ccfbf1);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary);
+  }
+
+  .pin-modal h2 {
+    font-size: 20px;
+    font-weight: 800;
+    margin-bottom: 4px;
+    color: var(--text);
+  }
+
+  .pin-modal p {
+    font-size: 14px;
+    color: #64748b;
+    margin-bottom: 24px;
+  }
+
+  .pin-dots {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 24px;
+
+    .dot {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 2px solid #d1d5db;
+      transition: all 0.2s ease;
+
+      &.filled {
+        background: var(--primary);
+        border-color: var(--primary);
+      }
+    }
+  }
+
+  .pin-keypad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .key {
+    height: 52px;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Rubik', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    background: #f1f5f9;
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &:hover {
+      background: #e2e8f0;
+    }
+
+    &:active {
+      transform: scale(0.95);
+    }
+
+    &.key-clear {
+      font-size: 14px;
+      background: #fee2e2;
+      color: #dc2626;
+
+      &:hover {
+        background: #fecaca;
+      }
+    }
+  }
+
+  .pin-error {
+    font-size: 13px;
+    color: #dc2626;
+    font-weight: 600;
+    min-height: 20px;
+    margin-bottom: 8px;
+  }
+
+  .pin-cancel {
+    background: none;
+    border: none;
+    font-family: 'Rubik', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: #94a3b8;
+    cursor: pointer;
+
+    &:hover {
+      color: var(--text);
+    }
+  }
+
+  .tab-switcher {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 24px;
+    background: white;
+    padding: 6px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+  }
+
+  .tab-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-family: 'Rubik', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    background: transparent;
+    color: var(--text);
+    opacity: 0.6;
+
+    &:hover {
+      opacity: 0.8;
+      background: var(--bg);
+    }
+
+    &.active {
+      background: var(--primary-gradient);
+      color: white;
+      opacity: 1;
+      box-shadow: 0 4px 15px rgba(13, 148, 136, 0.3);
+    }
+  }
+
+  .tab-content {
+    display: none;
+
+    &.active {
+      display: block;
+    }
+  }
+
+  .day-header {
+    background: white;
+    padding: 20px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    margin-bottom: 20px;
+    box-shadow: var(--shadow);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .day-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .day-name {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--primary-dark);
+  }
+
+  .day-date {
+    font-size: 14px;
+    color: #64748b;
+    font-weight: 500;
+  }
+
+  .logout-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: 12px;
+    border: 2px solid #dc2626;
+    background: #fee2e2;
+    font-family: 'Rubik', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: #dc2626;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: #dc2626;
+      color: white;
+    }
+  }
+
+  .week-info-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--primary-dark);
+  }
+
+  .saturday-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: 2px solid #dc2626;
+    background: #fee2e2;
+    font-family: 'Rubik', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &.active {
+      border-color: #16a34a;
+      background: #dcfce7;
+    }
+
+    .sat-label {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .sat-status {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 10px;
+      background: #dc2626;
+      color: white;
+    }
+
+    &.active .sat-status {
+      background: #16a34a;
+    }
+  }
+
+  .week-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: white;
+    padding: 20px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    margin-bottom: 20px;
+    box-shadow: var(--shadow);
+  }
+
+  .search-box {
+    position: relative;
+    margin-bottom: 20px;
+
+    svg {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #94a3b8;
+    }
+
+    .input {
+      padding-left: 46px;
+    }
+  }
+
+  .save-section, .copy-section {
+    text-align: center;
+    margin-top: 30px;
+    padding: 20px;
+    background: white;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+  }
+
+  .save-btn {
+    padding: 14px 40px;
+    font-size: 16px;
+  }
+
+  .closed-notice {
+    text-align: center;
+    padding: 60px 20px;
+    background: white;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+
+    svg {
+      color: #94a3b8;
+      margin-bottom: 16px;
+    }
+
+    h3 {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    p {
+      font-size: 14px;
+      color: #64748b;
+    }
+  }
+
+  .copy-preview {
+    margin-top: 16px;
+    padding: 16px;
+    background: var(--bg);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    text-align: right;
+    font-size: 14px;
+    line-height: 2;
+    white-space: pre-wrap;
+    font-family: 'Rubik', sans-serif;
+    color: var(--text);
+  }
+
+  @media (max-width: 640px) {
+    .day-header, .week-header {
+      flex-direction: column;
+      gap: 12px;
+      text-align: center;
+    }
+  }
+</style>
+
+<style is:global>
+  .student-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f0fdfa;
+    padding: 14px;
+    margin-bottom: 12px;
+    border-radius: 14px;
+    border: 1px solid #99f6e4;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    transition: all 0.2s ease;
+
+    &:hover {
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    &.marked {
+      border-color: #14b8a6;
+      background: linear-gradient(135deg, #f0fdfa, #ffffff);
+    }
+  }
+
+  .student-row-new {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #fffbeb;
+    padding: 14px;
+    margin-bottom: 12px;
+    border-radius: 14px;
+    border: 1px solid #fde68a;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+
+  .student-name {
+    font-size: 17px;
+    font-weight: 600;
+    color: #0f766e;
+    flex: 1;
+    font-family: 'Rubik', sans-serif;
+  }
+
+  .student-name-new {
+    font-size: 17px;
+    font-weight: 600;
+    color: #92400e;
+    flex: 1;
+    font-family: 'Rubik', sans-serif;
+  }
+
+  .new-badge {
+    font-size: 11px;
+    background: #fef3c7;
+    color: #d97706;
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-weight: 700;
+    margin-right: 8px;
+  }
+
+  .status-icons {
+    display: flex;
+    gap: 10px;
+  }
+
+  .icon-btn {
+    width: 44px;
+    height: 44px;
+    border: 1px solid #5eead4;
+    background: #ccfbf1;
+    padding: 0;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+
+    &:hover {
+      background: #99f6e4;
+      transform: scale(1.1);
+    }
+
+    &:active {
+      transform: scale(0.95);
+    }
+
+    &.present-btn {
+      color: #16a34a;
+      &:hover, &.active {
+        background: #dcfce7;
+        border-color: #16a34a;
+        box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.15);
+      }
+    }
+
+    &.excused-btn {
+      color: #ea580c;
+      &:hover, &.active {
+        background: #fff7ed;
+        border-color: #ea580c;
+        box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.15);
+      }
+    }
+  }
+
+  .weekly-table-wrap {
+    overflow-x: auto;
+    background: white;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+  }
+
+  .weekly-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'Rubik', sans-serif;
+    font-size: 14px;
+
+    th, td {
+      padding: 12px 10px;
+      text-align: center;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    thead tr {
+      background: var(--bg);
+    }
+
+    .wt-head-name {
+      text-align: right;
+      font-weight: 700;
+      color: var(--primary-dark);
+      padding-right: 16px;
+    }
+
+    .wt-head {
+      font-weight: 700;
+      color: var(--primary-dark);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .wt-head-date {
+      font-weight: 500;
+      color: #64748b;
+      font-size: 11px;
+    }
+
+    .wt-name {
+      text-align: right;
+      font-weight: 600;
+      color: var(--text);
+      padding-right: 16px;
+      white-space: nowrap;
+    }
+
+    .wt-cell {
+      padding: 8px 6px;
+    }
+
+    .wt-badge {
+      display: inline-block;
+      width: 28px;
+      height: 28px;
+      line-height: 28px;
+      border-radius: 8px;
+      font-size: 14px;
+
+      &.present { background: #dcfce7; }
+      &.absent { background: #fee2e2; }
+      &.excused { background: #fff7ed; }
+      &.new-member {
+        background: #fef3c7;
+        font-size: 10px;
+        width: auto;
+        padding: 0 8px;
+        color: #d97706;
+        font-weight: 700;
+      }
+    }
+
+    tbody tr:hover {
+      background: #f8fffe;
+    }
+  }
+</style>
+
+<script>
+  import { supabase } from '../lib/supabase';
+
+  const DAYS_AR = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+  const WEEK_START_DAY = 6;
+
+  function getHijriString(date: Date): string {
+    const h = new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    }).formatToParts(date);
+    const day = h.find(p => p.type === 'day')?.value || '';
+    const month = h.find(p => p.type === 'month')?.value || '';
+    const year = h.find(p => p.type === 'year')?.value || '';
+    return `${day} ${month} ${year}`;
+  }
+
+  function getWeekSaturday(): Date {
+    const now = new Date();
+    const day = now.getDay();
+    const diff = (day - WEEK_START_DAY + 7) % 7;
+    const sat = new Date(now);
+    sat.setDate(now.getDate() - diff);
+    sat.setHours(0, 0, 0, 0);
+    return sat;
+  }
+
+  function getWeekDates(): Date[] {
+    const sat = getWeekSaturday();
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(sat);
+      d.setDate(sat.getDate() + i);
+      return d;
+    });
+  }
+
+  function dateStr(d: Date): string {
+    return d.toISOString().split('T')[0];
+  }
+
+  function isWithinOperatingHours(): boolean {
+    const hour = new Date().getHours();
+    return hour >= 12 && hour < 21;
+  }
+
+  type Student = { id: string; name: string; created_at: string };
+  type AttMap = Record<string, string>;
+  type ExcMap = Record<string, string>;
+
+  let allStudents: Student[] = [];
+  let todayStr: string;
+  let todayDate: Date;
+  let todayStatus: AttMap = {};
+  let todayExcused: ExcMap = {};
+  let weekData: Record<string, AttMap> = {};
+  let weekExcused: Record<string, ExcMap> = {};
+  let pinCode = '';
+  let saturdayActive = false;
+  let dailyAuthenticated = false;
+
+  // --- Helpers ---
+  function getActiveWeekDates(): Date[] {
+    const all = getWeekDates();
+    if (!saturdayActive) {
+      return all.filter(d => d.getDay() !== 6);
+    }
+    return all.filter(d => d.getDay() !== 5);
+  }
+
+  // --- PIN Logic ---
+  function showPinModal() {
+    pinCode = '';
+    updatePinDots();
+    document.getElementById('pinOverlay')!.style.display = 'flex';
+    document.getElementById('pinError')!.textContent = '';
+  }
+
+  function hidePinModal() {
+    document.getElementById('pinOverlay')!.style.display = 'none';
+    pinCode = '';
+    updatePinDots();
+  }
+
+  function updatePinDots() {
+    const dots = document.getElementById('pinDots')!.querySelectorAll('.dot');
+    dots.forEach((dot, i) => {
+      dot.classList.toggle('filled', i < pinCode.length);
+    });
+  }
+
+  async function verifyPin() {
+    const { data } = await supabase
+      .from('students')
+      .select('id, name')
+      .eq('pin_code', pinCode)
+      .eq('is_active', true)
+      .single();
+
+    if (data) {
+      dailyAuthenticated = true;
+      hidePinModal();
+      document.getElementById('dailySection')!.classList.add('active');
+      document.getElementById('dailyList')!.style.display = 'block';
+      document.getElementById('dailySaveSection')!.style.display = isWithinOperatingHours() ? 'block' : 'none';
+      document.getElementById('dailyClosed')!.style.display = isWithinOperatingHours() ? 'none' : 'block';
+    } else {
+      document.getElementById('pinError')!.textContent = 'الرمز غير صحيح';
+      pinCode = '';
+      updatePinDots();
+    }
+  }
+
+  document.getElementById('pinKeypad')!.addEventListener('click', (e) => {
+    const key = (e.target as HTMLElement).closest('.key') as HTMLElement;
+    if (!key) return;
+    const val = key.dataset.key!;
+    if (val === 'clear') {
+      pinCode = pinCode.slice(0, -1);
+    } else if (pinCode.length < 4) {
+      pinCode += val;
+    }
+    updatePinDots();
+    if (pinCode.length === 4) verifyPin();
+  });
+
+  document.getElementById('pinCancel')!.addEventListener('click', hidePinModal);
+
+  // --- Init ---
+  function init() {
+    todayDate = new Date();
+    todayStr = dateStr(todayDate);
+    const weekDates = getWeekDates();
+
+    document.getElementById('dayName')!.textContent = DAYS_AR[todayDate.getDay()];
+    document.getElementById('dayDate')!.textContent = getHijriString(todayDate);
+
+    document.getElementById('weeklyRange')!.textContent = `${getHijriString(weekDates[0])} — ${getHijriString(weekDates[6])}`;
+
+    document.getElementById('dailyList')!.style.display = 'none';
+    document.getElementById('dailySaveSection')!.style.display = 'none';
+    document.getElementById('dailyClosed')!.style.display = 'none';
+
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const tab = (e.currentTarget as HTMLElement).dataset.tab!;
+        if (tab === 'daily' && !dailyAuthenticated) {
+          showPinModal();
+          return;
+        }
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        (e.currentTarget as HTMLElement).classList.add('active');
+        document.getElementById(tab === 'daily' ? 'dailySection' : 'weeklySection')!.classList.add('active');
+      });
+    });
+
+    const satToggle = document.getElementById('saturdayToggle')!;
+    satToggle.addEventListener('click', () => {
+      saturdayActive = !saturdayActive;
+      satToggle.classList.toggle('active', saturdayActive);
+      document.getElementById('satStatus')!.textContent = saturdayActive ? 'دراسة' : 'تعطيل';
+      renderWeekly();
+    });
+
+    document.getElementById('logoutBtn')!.addEventListener('click', () => {
+      dailyAuthenticated = false;
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      document.querySelector('.tab-btn[data-tab="weekly"]')!.classList.add('active');
+      document.getElementById('weeklySection')!.classList.add('active');
+      document.getElementById('dailyList')!.style.display = 'none';
+      document.getElementById('dailySaveSection')!.style.display = 'none';
+    });
+
+    loadData();
+  }
+
+  async function loadData() {
+    const { data: sData } = await supabase
+      .from('students')
+      .select('id, name, created_at')
+      .eq('is_active', true)
+      .order('name');
+
+    if (sData) allStudents = sData;
+
+    const { data: todayAtt } = await supabase
+      .from('attendance_rows')
+      .select('student_id, status')
+      .eq('date', todayStr);
+
+    if (todayAtt) {
+      todayAtt.forEach((a: any) => { todayStatus[a.student_id] = a.status; });
+    }
+
+    const { data: todayExc } = await supabase
+      .from('weekly_excuses')
+      .select('student_id, reason')
+      .eq('week_start', dateStr(getWeekSaturday()));
+
+    if (todayExc) {
+      todayExc.forEach((e: any) => { todayExcused[e.student_id] = e.reason || ''; });
+    }
+
+    const weekDates = getWeekDates();
+    for (const wd of weekDates) {
+      const ds = dateStr(wd);
+      const { data: att } = await supabase
+        .from('attendance_rows')
+        .select('student_id, status')
+        .eq('date', ds);
+
+      if (att) {
+        weekData[ds] = {};
+        att.forEach((a: any) => { weekData[ds][a.student_id] = a.status; });
+      }
+
+      const { data: exc } = await supabase
+        .from('weekly_excuses')
+        .select('student_id, reason')
+        .eq('week_start', dateStr(getWeekSaturday()));
+
+      if (exc) {
+        weekExcused[ds] = {};
+        exc.forEach((e: any) => { weekExcused[ds][e.student_id] = e.reason || ''; });
+      }
+    }
+
+    renderDaily();
+    renderWeekly();
+  }
+
+  function renderDaily(filter = '') {
+    const list = document.getElementById('dailyList')!;
+    const saveSection = document.getElementById('dailySaveSection')!;
+    const filtered = allStudents.filter(s => !filter || s.name.includes(filter));
+
+    if (filtered.length === 0) {
+      list.innerHTML = '<div style="text-align:center;padding:60px;color:#94a3b8;">لا توجد طالبات</div>';
+      saveSection.style.display = 'none';
+      return;
+    }
+
+    saveSection.style.display = isWithinOperatingHours() ? 'block' : 'none';
+
+    list.innerHTML = filtered.map(s => {
+      const createdDate = new Date(s.created_at);
+      const createdStr = dateStr(createdDate);
+      const isNew = createdStr === todayStr;
+
+      if (createdStr < todayStr && !todayStatus[s.id] && !todayExcused[s.id]) {
+        todayStatus[s.id] = 'absent';
+      }
+
+      const st = todayStatus[s.id] || '';
+      const isExc = !!todayExcused[s.id];
+      const displayStatus = isExc ? 'excused' : st;
+
+      if (isNew) {
+        return `
+          <div class="student-row-new" data-id="${s.id}">
+            <div class="student-name-new">${s.name}<span class="new-badge">جديد</span></div>
+            <div class="status-icons">
+              <button class="icon-btn present-btn" data-status="present" title="حاضرة">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
+                  <polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>
+              </button>
+              <button class="icon-btn excused-btn" data-status="excused" title="عذر موجه">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                  <line x1="12" y1="9" x2="12" y2="13"/>
+                  <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        `;
+      }
+
+      return `
+        <div class="student-row ${displayStatus ? 'marked' : ''}" data-id="${s.id}">
+          <div class="student-name">${s.name}</div>
+          <div class="status-icons">
+            <button class="icon-btn present-btn ${displayStatus === 'present' ? 'active' : ''}" data-status="present" title="حاضرة">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
+                <polyline points="22 4 12 14.01 9 11.01"/>
+              </svg>
+            </button>
+            <button class="icon-btn excused-btn ${displayStatus === 'excused' ? 'active' : ''}" data-status="excused" title="عذر موجه">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                <line x1="12" y1="9" x2="12" y2="13"/>
+                <line x1="12" y1="17" x2="12.01" y2="17"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    list.querySelectorAll('.icon-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const b = (e.target as HTMLElement).closest('.icon-btn') as HTMLElement;
+        const r = b.closest('.student-row, .student-row-new') as HTMLElement;
+        const id = r.dataset.id!;
+        const status = b.dataset.status!;
+
+        if (status === 'excused') {
+          if (todayExcused[id]) {
+            delete todayExcused[id];
+            b.classList.remove('active');
+            r.classList.remove('marked');
+          } else {
+            r.querySelectorAll('.icon-btn').forEach(x => x.classList.remove('active'));
+            b.classList.add('active');
+            r.classList.add('marked');
+            todayExcused[id] = '';
+            delete todayStatus[id];
+          }
+        } else {
+          delete todayExcused[id];
+          if (todayStatus[id] === status) {
+            delete todayStatus[id];
+            b.classList.remove('active');
+            r.classList.remove('marked');
+          } else {
+            r.querySelectorAll('.icon-btn').forEach(x => x.classList.remove('active'));
+            b.classList.add('active');
+            r.classList.add('marked');
+            todayStatus[id] = status;
+          }
+        }
+      });
+    });
+  }
+
+  function renderWeekly(filter = '') {
+    const list = document.getElementById('weeklyList')!;
+    const activeDays = getActiveWeekDates();
+    const filtered = allStudents.filter(s => !filter || s.name.includes(filter));
+
+    const dayHeaders = activeDays.map(wd =>
+      `<th class="wt-head">${DAYS_AR[wd.getDay()]}<br><span class="wt-head-date">${getHijriString(wd)}</span></th>`
+    ).join('');
+
+    const rows = filtered.map(s => {
+      const cells = activeDays.map(wd => {
+        const ds = dateStr(wd);
+        const createdStr = dateStr(new Date(s.created_at));
+        const dayStatus = weekData[ds] || {};
+        const dayExc = weekExcused[ds] || {};
+
+        if (createdStr > ds) {
+          return '<td class="wt-cell"><span class="wt-badge new-member">جديد</span></td>';
+        }
+        if (dayExc[s.id]) {
+          return '<td class="wt-cell"><span class="wt-badge excused">⚠️</span></td>';
+        }
+        if (dayStatus[s.id] === 'present') {
+          return '<td class="wt-cell"><span class="wt-badge present">✅</span></td>';
+        }
+        return '<td class="wt-cell"><span class="wt-badge absent">❌</span></td>';
+      }).join('');
+
+      return `<tr><td class="wt-name">${s.name}</td>${cells}</tr>`;
+    }).join('');
+
+    list.innerHTML = `
+      <div class="weekly-table-wrap">
+        <table class="weekly-table">
+          <thead><tr><th class="wt-head-name">الاسم</th>${dayHeaders}</tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    `;
+
+    document.getElementById('copySection')!.style.display = allStudents.length > 0 ? 'block' : 'none';
+  }
+
+  document.getElementById('copyBtn')!.addEventListener('click', () => {
+    const activeDays = getActiveWeekDates();
+    const firstDay = activeDays[0];
+    const lastDay = activeDays[activeDays.length - 1];
+
+    let text = '📝 قائمة الحلقة اليومية للمراجعة\n';
+    text += `📆 من ${DAYS_AR[firstDay.getDay()]} ${getHijriString(firstDay)} إلى ${DAYS_AR[lastDay.getDay()]} ${getHijriString(lastDay)}\n`;
+    text += '▫️▫️▫️▫️▫️▫️▫️▫️\n\n';
+
+    allStudents.forEach((s, i) => {
+      const icons = activeDays.map(wd => {
+        const ds = dateStr(wd);
+        const createdStr = dateStr(new Date(s.created_at));
+        const dayStatus = weekData[ds] || {};
+        const dayExc = weekExcused[ds] || {};
+
+        if (createdStr > ds) return '🔁';
+        if (dayExc[s.id]) return '⏳';
+        if (dayStatus[s.id] === 'present') return '✅';
+        return '❌';
+      }).join('');
+
+      text += `${i + 1}. ${s.name}${icons}\n`;
+    });
+
+    text += '\n▫️▫️▫️▫️▫️▫️▫️▫️▫️\n';
+    text += '(✅): علامة حضور.\n';
+    text += '(⏳): علامة تغيب بعذر.\n';
+    text += '(❌): علامة تغيب بدون عذر.\n';
+    text += '(🔁): طالبة جديدة\n';
+
+    const preview = document.getElementById('copyPreview')!;
+    preview.textContent = text;
+    preview.style.display = 'block';
+    navigator.clipboard.writeText(text).then(() => {
+      showToast('تم نسخ القائمة');
+    }).catch(() => {
+      showToast('اضغط Ctrl+C للنسخ');
+    });
+  });
+
+  document.getElementById('dailySearch')!.addEventListener('input', (e) => {
+    renderDaily((e.target as HTMLInputElement).value);
+  });
+
+  document.getElementById('weeklySearch')!.addEventListener('input', (e) => {
+    renderWeekly((e.target as HTMLInputElement).value);
+  });
+
+  document.getElementById('dailySaveBtn')!.addEventListener('click', async () => {
+    const btn = document.getElementById('dailySaveBtn') as HTMLButtonElement;
+    btn.disabled = true;
+    btn.textContent = 'جاري الحفظ...';
+    try {
+      await supabase.from('attendance_rows').delete().eq('date', todayStr);
+      const records = Object.entries(todayStatus).map(([sid, status]) => ({
+        student_id: sid, date: todayStr, status, week_start: dateStr(getWeekSaturday()),
+      }));
+      if (records.length > 0) {
+        const { error } = await supabase.from('attendance_rows').insert(records);
+        if (error) throw error;
+      }
+      await supabase.from('weekly_excuses').delete().eq('week_start', dateStr(getWeekSaturday()));
+      const excRecords = Object.keys(todayExcused).map(sid => ({
+        student_id: sid, week_start: dateStr(getWeekSaturday()), reason: null,
+      }));
+      if (excRecords.length > 0) {
+        const { error } = await supabase.from('weekly_excuses').insert(excRecords);
+        if (error) throw error;
+      }
+      showToast('تم حفظ الحضور بنجاح');
+    } catch (err) {
+      showToast('خطأ في حفظ البيانات');
+      console.error(err);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>حفظ الحضور والغياب`;
+    }
+  });
+
+  init();
+</script>
