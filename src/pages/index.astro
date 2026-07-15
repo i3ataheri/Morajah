@@ -5,8 +5,8 @@ import Header from '../components/Header.astro';
 
 <Layout title="الحضور والغياب | نظام الحضور والغياب">
   <Header
-    title="قائمة الحضور والغياب"
-    subtitle="سجّل حالة حضور الطالبات"
+    title="قائمة الحلقة اليومية للمراجعة"
+    subtitle="سجّلي حالة حضور الطالبات"
   />
 
   <!-- PIN Overlay -->
@@ -19,7 +19,7 @@ import Header from '../components/Header.astro';
         </svg>
       </div>
       <h2>تأكيد الهوية</h2>
-      <p>أدخل رمز الدخول للتسجيل</p>
+          <p>أدخلتِ رمز الدخول للتسجيل</p>
       <div class="pin-dots" id="pinDots">
         <span class="dot"></span>
         <span class="dot"></span>
@@ -36,7 +36,7 @@ import Header from '../components/Header.astro';
         <button class="key" data-key="7">7</button>
         <button class="key" data-key="8">8</button>
         <button class="key" data-key="9">9</button>
-        <button class="key key-clear" data-key="clear">مسح</button>
+        <button class="key key-clear" data-key="clear">مسحي</button>
         <button class="key" data-key="0">0</button>
       </div>
       <div class="pin-error" id="pinError"></div>
@@ -49,23 +49,23 @@ import Header from '../components/Header.astro';
 
       <!-- Tab Switcher -->
       <div class="tab-switcher">
-        <button class="tab-btn active" data-tab="daily">
+        <button class="tab-btn" data-tab="daily">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
             <line x1="16" y1="2" x2="16" y2="6"/>
             <line x1="8" y1="2" x2="8" y2="6"/>
             <line x1="3" y1="10" x2="21" y2="10"/>
           </svg>
-          يومي
+          اليومي
         </button>
-        <button class="tab-btn" data-tab="weekly">
+        <button class="tab-btn active" data-tab="weekly">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
             <polyline points="14 2 14 8 20 8"/>
             <line x1="16" y1="13" x2="8" y2="13"/>
             <line x1="16" y1="17" x2="8" y2="17"/>
           </svg>
-          أسبوعي
+          الأسبوعي
         </button>
       </div>
 
@@ -91,7 +91,7 @@ import Header from '../components/Header.astro';
             <circle cx="11" cy="11" r="8"/>
             <line x1="21" y1="21" x2="16.65" y2="16.65"/>
           </svg>
-          <input type="text" id="dailySearch" class="input" placeholder="بحث عن اسم..." />
+            <input type="text" id="dailySearch" class="input" placeholder="ابحثي عن اسم..." />
         </div>
 
         <div id="dailyList"></div>
@@ -118,7 +118,7 @@ import Header from '../components/Header.astro';
       </div>
 
       <!-- Weekly Section -->
-      <div id="weeklySection" class="tab-content">
+      <div id="weeklySection" class="tab-content active">
         <div class="week-header">
           <div class="week-info-bar">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -140,7 +140,7 @@ import Header from '../components/Header.astro';
             <circle cx="11" cy="11" r="8"/>
             <line x1="21" y1="21" x2="16.65" y2="16.65"/>
           </svg>
-          <input type="text" id="weeklySearch" class="input" placeholder="بحث عن اسم..." />
+            <input type="text" id="weeklySearch" class="input" placeholder="ابحثي عن اسم..." />
         </div>
 
         <div id="weeklyList"></div>
@@ -787,6 +787,9 @@ import Header from '../components/Header.astro';
   let pinCode = '';
   let saturdayActive = false;
   let dailyAuthenticated = false;
+  let copyAuthenticated = false;
+  let saturdayAuthenticated = false;
+  let pinPurpose: 'daily' | 'copy' | 'saturday' = 'daily';
 
   // --- Helpers ---
   function getActiveWeekDates(): Date[] {
@@ -798,7 +801,8 @@ import Header from '../components/Header.astro';
   }
 
   // --- PIN Logic ---
-  function showPinModal() {
+  function showPinModal(purpose: 'daily' | 'copy' | 'saturday' = 'daily') {
+    pinPurpose = purpose;
     pinCode = '';
     updatePinDots();
     document.getElementById('pinOverlay')!.style.display = 'flex';
@@ -827,12 +831,20 @@ import Header from '../components/Header.astro';
       .single();
 
     if (data) {
-      dailyAuthenticated = true;
       hidePinModal();
-      document.getElementById('dailySection')!.classList.add('active');
-      document.getElementById('dailyList')!.style.display = 'block';
-      document.getElementById('dailySaveSection')!.style.display = isWithinOperatingHours() ? 'block' : 'none';
-      document.getElementById('dailyClosed')!.style.display = isWithinOperatingHours() ? 'none' : 'block';
+      if (pinPurpose === 'daily') {
+        dailyAuthenticated = true;
+        document.getElementById('dailySection')!.classList.add('active');
+        document.getElementById('dailyList')!.style.display = 'block';
+        document.getElementById('dailySaveSection')!.style.display = isWithinOperatingHours() ? 'block' : 'none';
+        document.getElementById('dailyClosed')!.style.display = isWithinOperatingHours() ? 'none' : 'block';
+      } else if (pinPurpose === 'copy') {
+        copyAuthenticated = true;
+        doCopy();
+      } else if (pinPurpose === 'saturday') {
+        saturdayAuthenticated = true;
+        toggleSaturday();
+      }
     } else {
       document.getElementById('pinError')!.textContent = 'الرمز غير صحيح';
       pinCode = '';
@@ -886,10 +898,11 @@ import Header from '../components/Header.astro';
 
     const satToggle = document.getElementById('saturdayToggle')!;
     satToggle.addEventListener('click', () => {
-      saturdayActive = !saturdayActive;
-      satToggle.classList.toggle('active', saturdayActive);
-      document.getElementById('satStatus')!.textContent = saturdayActive ? 'دراسة' : 'تعطيل';
-      renderWeekly();
+      if (!saturdayAuthenticated) {
+        showPinModal('saturday');
+        return;
+      }
+      toggleSaturday();
     });
 
     document.getElementById('logoutBtn')!.addEventListener('click', () => {
@@ -1110,7 +1123,15 @@ import Header from '../components/Header.astro';
     document.getElementById('copySection')!.style.display = allStudents.length > 0 ? 'block' : 'none';
   }
 
-  document.getElementById('copyBtn')!.addEventListener('click', () => {
+  function toggleSaturday() {
+    saturdayActive = !saturdayActive;
+    const satToggle = document.getElementById('saturdayToggle')!;
+    satToggle.classList.toggle('active', saturdayActive);
+    document.getElementById('satStatus')!.textContent = saturdayActive ? 'دراسة' : 'تعطيل';
+    renderWeekly();
+  }
+
+  function doCopy() {
     const activeDays = getActiveWeekDates();
     const firstDay = activeDays[0];
     const lastDay = activeDays[activeDays.length - 1];
@@ -1147,8 +1168,16 @@ import Header from '../components/Header.astro';
     navigator.clipboard.writeText(text).then(() => {
       showToast('تم نسخ القائمة');
     }).catch(() => {
-      showToast('اضغط Ctrl+C للنسخ');
+      showToast('اضغطي Ctrl+C للنسخ');
     });
+  }
+
+  document.getElementById('copyBtn')!.addEventListener('click', () => {
+    if (!copyAuthenticated) {
+      showPinModal('copy');
+      return;
+    }
+    doCopy();
   });
 
   document.getElementById('dailySearch')!.addEventListener('input', (e) => {
