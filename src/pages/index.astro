@@ -656,9 +656,10 @@ import Header from '../components/Header.astro';
     border-collapse: collapse;
     font-family: 'Rubik', sans-serif;
     font-size: 13px;
+    min-width: 380px;
 
     th, td {
-      padding: 8px 4px;
+      padding: 8px 6px;
       text-align: center;
       border-bottom: 1px solid #f1f5f9;
     }
@@ -1127,7 +1128,7 @@ import Header from '../components/Header.astro';
     saturdayActive = !saturdayActive;
     const satToggle = document.getElementById('saturdayToggle')!;
     satToggle.classList.toggle('active', saturdayActive);
-    document.getElementById('satStatus')!.textContent = saturdayActive ? 'دراسة' : 'تعطيل';
+    document.getElementById('satStatus')!.textContent = saturdayActive ? 'مفتوح' : 'مغلق';
     renderWeekly();
   }
 
