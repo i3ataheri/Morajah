@@ -76,6 +76,7 @@ import Header from '../components/Header.astro';
             <span class="day-name" id="dayName"></span>
             <span class="day-date" id="dayDate"></span>
           </div>
+          <input type="date" id="dailyDatePicker" class="date-picker" />
           <button class="logout-btn" id="logoutBtn">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
@@ -355,6 +356,8 @@ import Header from '../components/Header.astro';
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
   }
 
   .day-info {
@@ -373,6 +376,17 @@ import Header from '../components/Header.astro';
     font-size: 14px;
     color: #64748b;
     font-weight: 500;
+  }
+
+  .date-picker {
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: 'Rubik', sans-serif;
+    font-size: 14px;
+    color: var(--text);
+    background: white;
+    cursor: pointer;
   }
 
   .logout-btn {
@@ -778,6 +792,7 @@ import Header from '../components/Header.astro';
   let allStudents: Student[] = [];
   let todayStr: string;
   let todayDate: Date;
+  let selectedDateStr: string;
   let todayStatus: AttMap = {};
   let todayExcused: ExcMap = {};
   let weekData: Record<string, AttMap> = {};
@@ -834,8 +849,8 @@ import Header from '../components/Header.astro';
         dailyAuthenticated = true;
         document.getElementById('dailySection')!.classList.add('active');
         document.getElementById('dailyList')!.style.display = 'block';
-        document.getElementById('dailySaveSection')!.style.display = isWithinOperatingHours() ? 'block' : 'none';
-        document.getElementById('dailyClosed')!.style.display = isWithinOperatingHours() ? 'none' : 'block';
+        document.getElementById('dailySaveSection')!.style.display = 'block';
+        document.getElementById('dailyClosed')!.style.display = 'none';
       } else if (pinPurpose === 'copy') {
         copyAuthenticated = true;
         doCopy();
@@ -869,7 +884,12 @@ import Header from '../components/Header.astro';
   function init() {
     todayDate = new Date();
     todayStr = dateStr(todayDate);
+    selectedDateStr = todayStr;
     const weekDates = getWeekDates();
+
+    const datePicker = document.getElementById('dailyDatePicker') as HTMLInputElement;
+    datePicker.value = todayStr;
+    datePicker.max = todayStr;
 
     document.getElementById('dayName')!.textContent = DAYS_AR[todayDate.getDay()];
     document.getElementById('dayDate')!.textContent = getHijriString(todayDate);
@@ -879,6 +899,30 @@ import Header from '../components/Header.astro';
     document.getElementById('dailyList')!.style.display = 'none';
     document.getElementById('dailySaveSection')!.style.display = 'none';
     document.getElementById('dailyClosed')!.style.display = 'none';
+
+    datePicker.addEventListener('change', async () => {
+      selectedDateStr = datePicker.value;
+      const picked = new Date(selectedDateStr + 'T00:00:00');
+      document.getElementById('dayName')!.textContent = DAYS_AR[picked.getDay()];
+      document.getElementById('dayDate')!.textContent = getHijriString(picked);
+
+      todayStatus = {};
+      todayExcused = {};
+
+      const { data: att } = await supabase
+        .from('attendance_rows')
+        .select('student_id, status')
+        .eq('date', selectedDateStr);
+      if (att) att.forEach((a: any) => { todayStatus[a.student_id] = a.status; });
+
+      const { data: exc } = await supabase
+        .from('weekly_excuses')
+        .select('student_id, reason')
+        .eq('week_start', dateStr(getWeekSaturday()));
+      if (exc) exc.forEach((e: any) => { todayExcused[e.student_id] = e.reason || ''; });
+
+      renderDaily();
+    });
 
     document.querySelectorAll('.tab-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
@@ -996,14 +1040,15 @@ import Header from '../components/Header.astro';
       return;
     }
 
-    saveSection.style.display = isWithinOperatingHours() ? 'block' : 'none';
+    saveSection.style.display = 'block';
+    document.getElementById('dailyClosed')!.style.display = 'none';
 
     list.innerHTML = filtered.map(s => {
       const createdDate = new Date(s.created_at);
       const createdStr = dateStr(createdDate);
       const isNew = createdStr === todayStr;
 
-      if (createdStr < todayStr && !todayStatus[s.id] && !todayExcused[s.id]) {
+      if (selectedDateStr === todayStr && createdStr < todayStr && !todayStatus[s.id] && !todayExcused[s.id]) {
         todayStatus[s.id] = 'absent';
       }
 
@@ -1205,9 +1250,9 @@ import Header from '../components/Header.astro';
     btn.disabled = true;
     btn.textContent = 'جاري الحفظ...';
     try {
-      await supabase.from('attendance_rows').delete().eq('date', todayStr);
+      await supabase.from('attendance_rows').delete().eq('date', selectedDateStr);
       const records = Object.entries(todayStatus).map(([sid, status]) => ({
-        student_id: sid, date: todayStr, status, week_start: dateStr(getWeekSaturday()),
+        student_id: sid, date: selectedDateStr, status, week_start: dateStr(getWeekSaturday()),
       }));
       if (records.length > 0) {
         const { error } = await supabase.from('attendance_rows').insert(records);
