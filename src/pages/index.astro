@@ -791,7 +791,7 @@ import Header from '../components/Header.astro';
   function getActiveWeekDates(): Date[] {
     const all = getWeekDates();
     if (!saturdayActive) {
-      return all.filter(d => d.getDay() !== 6);
+      return all.filter(d => d.getDay() !== 6 && d.getDay() !== 5);
     }
     return all.filter(d => d.getDay() !== 5);
   }
