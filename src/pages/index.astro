@@ -604,8 +604,8 @@ import Header from '../components/Header.astro';
   .icon-btn {
     width: 44px;
     height: 44px;
-    border: 1px solid #5eead4;
-    background: #ccfbf1;
+    border: 1px solid #d1d5db;
+    background: #f9fafb;
     padding: 0;
     border-radius: 10px;
     cursor: pointer;
@@ -614,9 +614,10 @@ import Header from '../components/Header.astro';
     align-items: center;
     justify-content: center;
     font-size: 20px;
+    color: #9ca3af;
 
     &:hover {
-      background: #99f6e4;
+      background: #f3f4f6;
       transform: scale(1.1);
     }
 
@@ -624,22 +625,18 @@ import Header from '../components/Header.astro';
       transform: scale(0.95);
     }
 
-    &.present-btn {
+    &.present-btn.active {
       color: #16a34a;
-      &:hover, &.active {
-        background: #dcfce7;
-        border-color: #16a34a;
-        box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.15);
-      }
+      background: #dcfce7;
+      border-color: #16a34a;
+      box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.15);
     }
 
-    &.excused-btn {
+    &.excused-btn.active {
       color: #ea580c;
-      &:hover, &.active {
-        background: #fff7ed;
-        border-color: #ea580c;
-        box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.15);
-      }
+      background: #fff7ed;
+      border-color: #ea580c;
+      box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.15);
     }
   }
 
@@ -927,6 +924,20 @@ import Header from '../components/Header.astro';
       .order('name');
 
     if (sData) allStudents = sData;
+
+    if (todayDate.getDay() === 5) {
+      const thisWeekSatStr = dateStr(getWeekSaturday());
+
+      await supabase
+        .from('attendance_rows')
+        .delete()
+        .eq('week_start', thisWeekSatStr);
+
+      await supabase
+        .from('weekly_excuses')
+        .delete()
+        .eq('week_start', thisWeekSatStr);
+    }
 
     const { data: todayAtt } = await supabase
       .from('attendance_rows')
