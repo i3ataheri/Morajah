@@ -847,6 +847,9 @@ import Header from '../components/Header.astro';
       hidePinModal();
       if (pinPurpose === 'daily') {
         dailyAuthenticated = true;
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        document.querySelector('.tab-btn[data-tab="daily"]')!.classList.add('active');
         document.getElementById('dailySection')!.classList.add('active');
         document.getElementById('dailyList')!.style.display = 'block';
         document.getElementById('dailySaveSection')!.style.display = 'block';
