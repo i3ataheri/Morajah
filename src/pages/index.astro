@@ -168,6 +168,12 @@ import Header from '../components/Header.astro';
     padding: 30px 20px 60px;
   }
 
+  @media (max-width: 640px) {
+    .attendance-section {
+      padding: 16px 8px 40px;
+    }
+  }
+
   .pin-overlay {
     position: fixed;
     top: 0;
@@ -745,6 +751,51 @@ import Header from '../components/Header.astro';
 
     tbody tr:hover {
       background: #f8fffe;
+    }
+
+    @media (max-width: 640px) {
+      font-size: 11px;
+
+      th, td {
+        padding: 6px 2px;
+      }
+
+      .wt-head {
+        font-size: 9px;
+      }
+
+      .wt-head-date {
+        font-size: 8px;
+      }
+
+      .wt-head-name {
+        padding-right: 6px;
+      }
+
+      .wt-name {
+        font-size: 10px;
+        padding-right: 6px;
+        max-width: 60px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .wt-cell {
+        padding: 3px 1px;
+      }
+
+      .wt-badge {
+        width: 18px;
+        height: 18px;
+        line-height: 18px;
+        font-size: 10px;
+        border-radius: 4px;
+
+        &.new-member {
+          font-size: 7px;
+          padding: 0 3px;
+        }
+      }
     }
   }
 </style>
