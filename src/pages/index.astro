@@ -934,13 +934,13 @@ import Header from '../components/Header.astro';
         .from('attendance')
         .select('student_id, status')
         .eq('date', selectedDateStr);
-      if (att) att.forEach((a: any) => { todayStatus[a.student_id] = a.status; });
-
-      const { data: exc } = await supabase
-        .from('weekly_excuses')
-        .select('student_id, reason')
-        .eq('week_start', dateStr(getWeekSaturdayFor(picked)));
-      if (exc) exc.forEach((e: any) => { todayExcused[e.student_id] = e.reason || ''; });
+      if (att) att.forEach((a: any) => {
+        if (a.status === 'excused') {
+          todayExcused[a.student_id] = 'عذر';
+        } else {
+          todayStatus[a.student_id] = a.status;
+        }
+      });
 
       renderDaily();
     });
@@ -997,11 +997,6 @@ import Header from '../components/Header.astro';
         .from('attendance')
         .delete()
         .eq('week_start', thisWeekSatStr);
-
-      await supabase
-        .from('weekly_excuses')
-        .delete()
-        .eq('week_start', thisWeekSatStr);
     }
 
     const { data: todayAtt } = await supabase
@@ -1010,16 +1005,13 @@ import Header from '../components/Header.astro';
       .eq('date', todayStr);
 
     if (todayAtt) {
-      todayAtt.forEach((a: any) => { todayStatus[a.student_id] = a.status; });
-    }
-
-    const { data: todayExc } = await supabase
-      .from('weekly_excuses')
-      .select('student_id, reason')
-      .eq('week_start', dateStr(getWeekSaturday()));
-
-    if (todayExc) {
-      todayExc.forEach((e: any) => { todayExcused[e.student_id] = e.reason || ''; });
+      todayAtt.forEach((a: any) => {
+        if (a.status === 'excused') {
+          todayExcused[a.student_id] = 'عذر';
+        } else {
+          todayStatus[a.student_id] = a.status;
+        }
+      });
     }
 
     const weekDates = getWeekDates();
@@ -1032,17 +1024,14 @@ import Header from '../components/Header.astro';
 
       if (att) {
         weekData[ds] = {};
-        att.forEach((a: any) => { weekData[ds][a.student_id] = a.status; });
-      }
-
-      const { data: exc } = await supabase
-        .from('weekly_excuses')
-        .select('student_id, reason')
-        .eq('week_start', dateStr(getWeekSaturday()));
-
-      if (exc) {
         weekExcused[ds] = {};
-        exc.forEach((e: any) => { weekExcused[ds][e.student_id] = e.reason || ''; });
+        att.forEach((a: any) => {
+          if (a.status === 'excused') {
+            weekExcused[ds][a.student_id] = 'عذر';
+          } else {
+            weekData[ds][a.student_id] = a.status;
+          }
+        });
       }
     }
 
@@ -1282,11 +1271,18 @@ import Header from '../components/Header.astro';
         throw delErr;
       }
 
-      const records = Object.entries(todayStatus)
-        .filter(([_, status]) => status === 'present')
-        .map(([sid, status]) => ({
-          student_id: sid, date: selectedDateStr, status, week_start: selectedWeekSat,
-        }));
+      const records: any[] = [];
+      Object.entries(todayStatus).forEach(([sid, status]) => {
+        if (status === 'present') {
+          records.push({ student_id: sid, date: selectedDateStr, status, week_start: selectedWeekSat });
+        }
+      });
+      Object.keys(todayExcused).forEach(sid => {
+        if (!records.find(r => r.student_id === sid)) {
+          records.push({ student_id: sid, date: selectedDateStr, status: 'excused', week_start: selectedWeekSat });
+        }
+      });
+
       if (records.length > 0) {
         const { error } = await supabase.from('attendance').insert(records);
         if (error) {
@@ -1295,16 +1291,6 @@ import Header from '../components/Header.astro';
         }
       }
 
-      const currentWeekSat = dateStr(getWeekSaturday());
-      if (selectedWeekSat === currentWeekSat) {
-        await supabase.from('weekly_excuses').delete().eq('week_start', currentWeekSat);
-        const excRecords = Object.keys(todayExcused).map(sid => ({
-          student_id: sid, week_start: currentWeekSat, reason: null,
-        }));
-        if (excRecords.length > 0) {
-          await supabase.from('weekly_excuses').insert(excRecords);
-        }
-      }
       showToast('تم حفظ الحضور بنجاح');
       weekData[selectedDateStr] = { ...todayStatus };
       weekExcused[selectedDateStr] = { ...todayExcused };
