@@ -1171,7 +1171,6 @@ import Header from '../components/Header.astro';
     ).join('');
 
     const rows = filtered.map(s => {
-      let presentCount = 0;
       const cells = activeDays.map(wd => {
         const ds = dateStr(wd);
         const createdStr = dateStr(new Date(s.created_at));
@@ -1185,9 +1184,7 @@ import Header from '../components/Header.astro';
           return '<td class="wt-cell"><span class="wt-badge excused">⚠️</span></td>';
         }
         if (dayStatus[s.id] === 'present') {
-          presentCount++;
-          const ticks = '✅'.repeat(presentCount);
-          return `<td class="wt-cell"><span class="wt-badge present">${ticks}</span></td>`;
+          return '<td class="wt-cell"><span class="wt-badge present">✅</span></td>';
         }
         return '<td class="wt-cell"><span class="wt-badge absent">❌</span></td>';
       }).join('');
@@ -1225,7 +1222,6 @@ import Header from '../components/Header.astro';
     text += '▫️▫️▫️▫️▫️▫️▫️▫️\n\n';
 
     allStudents.forEach((s, i) => {
-      let presentCount = 0;
       const icons = activeDays.map(wd => {
         const ds = dateStr(wd);
         const createdStr = dateStr(new Date(s.created_at));
@@ -1234,10 +1230,7 @@ import Header from '../components/Header.astro';
 
         if (createdStr > ds) return '🔁';
         if (dayExc[s.id]) return '⏳';
-        if (dayStatus[s.id] === 'present') {
-          presentCount++;
-          return '✅'.repeat(presentCount);
-        }
+        if (dayStatus[s.id] === 'present') return '✅';
         return '❌';
       }).join('');
 
