@@ -767,6 +767,15 @@ import Header from '../components/Header.astro';
     return sat;
   }
 
+  function getWeekSaturdayFor(date: Date): Date {
+    const day = date.getDay();
+    const diff = (day - WEEK_START_DAY + 7) % 7;
+    const sat = new Date(date);
+    sat.setDate(date.getDate() - diff);
+    sat.setHours(0, 0, 0, 0);
+    return sat;
+  }
+
   function getWeekDates(): Date[] {
     const sat = getWeekSaturday();
     return Array.from({ length: 7 }, (_, i) => {
@@ -777,7 +786,10 @@ import Header from '../components/Header.astro';
   }
 
   function dateStr(d: Date): string {
-    return d.toISOString().split('T')[0];
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
   }
 
   function isWithinOperatingHours(): boolean {
@@ -852,8 +864,7 @@ import Header from '../components/Header.astro';
         document.querySelector('.tab-btn[data-tab="daily"]')!.classList.add('active');
         document.getElementById('dailySection')!.classList.add('active');
         document.getElementById('dailyList')!.style.display = 'block';
-        document.getElementById('dailySaveSection')!.style.display = 'block';
-        document.getElementById('dailyClosed')!.style.display = 'none';
+        renderDaily();
       } else if (pinPurpose === 'copy') {
         copyAuthenticated = true;
         doCopy();
@@ -921,7 +932,7 @@ import Header from '../components/Header.astro';
       const { data: exc } = await supabase
         .from('weekly_excuses')
         .select('student_id, reason')
-        .eq('week_start', dateStr(getWeekSaturday()));
+        .eq('week_start', dateStr(getWeekSaturdayFor(picked)));
       if (exc) exc.forEach((e: any) => { todayExcused[e.student_id] = e.reason || ''; });
 
       renderDaily();
@@ -1043,15 +1054,24 @@ import Header from '../components/Header.astro';
       return;
     }
 
-    saveSection.style.display = 'block';
-    document.getElementById('dailyClosed')!.style.display = 'none';
+    const isPastDate = selectedDateStr < todayStr;
+    const isToday = selectedDateStr === todayStr;
+    const canEdit = isPastDate || (isToday && isWithinOperatingHours());
+
+    if (isToday && !isWithinOperatingHours()) {
+      document.getElementById('dailyClosed')!.style.display = 'block';
+      saveSection.style.display = 'none';
+    } else {
+      document.getElementById('dailyClosed')!.style.display = 'none';
+      saveSection.style.display = 'block';
+    }
 
     list.innerHTML = filtered.map(s => {
       const createdDate = new Date(s.created_at);
       const createdStr = dateStr(createdDate);
       const isNew = createdStr === todayStr;
 
-      if (selectedDateStr === todayStr && createdStr < todayStr && !todayStatus[s.id] && !todayExcused[s.id]) {
+      if (isToday && isWithinOperatingHours() && createdStr < todayStr && !todayStatus[s.id] && !todayExcused[s.id]) {
         todayStatus[s.id] = 'absent';
       }
 
@@ -1253,21 +1273,25 @@ import Header from '../components/Header.astro';
     btn.disabled = true;
     btn.textContent = 'جاري الحفظ...';
     try {
+      const selectedWeekSat = dateStr(getWeekSaturdayFor(new Date(selectedDateStr + 'T00:00:00')));
       await supabase.from('attendance_rows').delete().eq('date', selectedDateStr);
       const records = Object.entries(todayStatus).map(([sid, status]) => ({
-        student_id: sid, date: selectedDateStr, status, week_start: dateStr(getWeekSaturday()),
+        student_id: sid, date: selectedDateStr, status, week_start: selectedWeekSat,
       }));
       if (records.length > 0) {
         const { error } = await supabase.from('attendance_rows').insert(records);
         if (error) throw error;
       }
-      await supabase.from('weekly_excuses').delete().eq('week_start', dateStr(getWeekSaturday()));
-      const excRecords = Object.keys(todayExcused).map(sid => ({
-        student_id: sid, week_start: dateStr(getWeekSaturday()), reason: null,
-      }));
-      if (excRecords.length > 0) {
-        const { error } = await supabase.from('weekly_excuses').insert(excRecords);
-        if (error) throw error;
+      const currentWeekSat = dateStr(getWeekSaturday());
+      if (selectedWeekSat === currentWeekSat) {
+        await supabase.from('weekly_excuses').delete().eq('week_start', currentWeekSat);
+        const excRecords = Object.keys(todayExcused).map(sid => ({
+          student_id: sid, week_start: currentWeekSat, reason: null,
+        }));
+        if (excRecords.length > 0) {
+          const { error } = await supabase.from('weekly_excuses').insert(excRecords);
+          if (error) throw error;
+        }
       }
       showToast('تم حفظ الحضور بنجاح');
       weekData[selectedDateStr] = { ...todayStatus };
