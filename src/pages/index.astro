@@ -777,43 +777,45 @@ import Header from '../components/Header.astro';
       font-size: 11px;
 
       th, td {
-        padding: 6px 2px;
+        padding: 5px 1px;
       }
 
       .wt-head {
-        font-size: 9px;
+        font-size: 10px;
       }
 
       .wt-head-date {
-        font-size: 8px;
+        font-size: 9px;
       }
 
       .wt-head-name {
-        padding-right: 6px;
+        padding-right: 4px;
       }
 
       .wt-name {
-        font-size: 10px;
-        padding-right: 6px;
-        max-width: 60px;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        font-size: 12px;
+        padding-right: 4px;
+        white-space: nowrap;
       }
 
       .wt-cell {
-        padding: 3px 1px;
+        padding: 2px 0;
       }
 
       .wt-badge {
-        width: 18px;
-        height: 18px;
-        line-height: 18px;
+        width: 16px;
+        height: 16px;
+        line-height: 16px;
         font-size: 10px;
         border-radius: 4px;
+        margin: 0;
 
         &.new-member {
           font-size: 7px;
-          padding: 0 3px;
+          padding: 0 2px;
+          width: auto;
+          height: auto;
+          line-height: normal;
         }
       }
     }
@@ -1226,9 +1228,13 @@ import Header from '../components/Header.astro';
     const activeDays = getActiveWeekDates();
     const filtered = allStudents.filter(s => !filter || s.name.includes(filter));
 
-    const dayHeaders = activeDays.map(wd =>
-      `<th class="wt-head">${DAYS_AR[wd.getDay()]}<br><span class="wt-head-date">${getHijriString(wd)}</span></th>`
-    ).join('');
+    const dayHeaders = activeDays.map(wd => {
+      const hijriParts = new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura', {
+        day: 'numeric',
+      }).formatToParts(wd);
+      const dayNum = hijriParts.find(p => p.type === 'day')?.value || '';
+      return `<th class="wt-head">${DAYS_AR[wd.getDay()]}<br><span class="wt-head-date">${dayNum}</span></th>`;
+    }).join('');
 
     const rows = filtered.map(s => {
       const cells = activeDays.map(wd => {
