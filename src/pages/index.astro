@@ -1282,7 +1282,13 @@ import Header from '../components/Header.astro';
     btn.textContent = 'جاري الحفظ...';
     try {
       const selectedWeekSat = dateStr(getWeekSaturdayFor(new Date(selectedDateStr + 'T00:00:00')));
-      await supabase.from('attendance_rows').delete().eq('date', selectedDateStr);
+
+      const { error: delErr } = await supabase.from('attendance_rows').delete().eq('date', selectedDateStr);
+      if (delErr) {
+        console.error('Delete attendance error:', delErr);
+        throw delErr;
+      }
+
       const records = Object.entries(todayStatus)
         .filter(([_, status]) => status === 'present')
         .map(([sid, status]) => ({
@@ -1290,8 +1296,12 @@ import Header from '../components/Header.astro';
         }));
       if (records.length > 0) {
         const { error } = await supabase.from('attendance_rows').insert(records);
-        if (error) throw error;
+        if (error) {
+          console.error('Insert attendance error:', error);
+          throw error;
+        }
       }
+
       const currentWeekSat = dateStr(getWeekSaturday());
       if (selectedWeekSat === currentWeekSat) {
         await supabase.from('weekly_excuses').delete().eq('week_start', currentWeekSat);
@@ -1299,8 +1309,7 @@ import Header from '../components/Header.astro';
           student_id: sid, week_start: currentWeekSat, reason: null,
         }));
         if (excRecords.length > 0) {
-          const { error } = await supabase.from('weekly_excuses').insert(excRecords);
-          if (error) throw error;
+          await supabase.from('weekly_excuses').insert(excRecords);
         }
       }
       showToast('تم حفظ الحضور بنجاح');
