@@ -792,11 +792,6 @@ import Header from '../components/Header.astro';
     return `${y}-${m}-${day}`;
   }
 
-  function isWithinOperatingHours(): boolean {
-    const hour = new Date().getHours();
-    return hour >= 12 && hour <= 21;
-  }
-
   type Student = { id: string; name: string; created_at: string };
   type AttMap = Record<string, string>;
   type ExcMap = Record<string, string>;
@@ -1056,22 +1051,16 @@ import Header from '../components/Header.astro';
 
     const isPastDate = selectedDateStr < todayStr;
     const isToday = selectedDateStr === todayStr;
-    const canEdit = isPastDate || (isToday && isWithinOperatingHours());
 
-    if (isToday && !isWithinOperatingHours()) {
-      document.getElementById('dailyClosed')!.style.display = 'block';
-      saveSection.style.display = 'none';
-    } else {
-      document.getElementById('dailyClosed')!.style.display = 'none';
-      saveSection.style.display = 'block';
-    }
+    document.getElementById('dailyClosed')!.style.display = 'none';
+    saveSection.style.display = 'block';
 
     list.innerHTML = filtered.map(s => {
       const createdDate = new Date(s.created_at);
       const createdStr = dateStr(createdDate);
       const isNew = createdStr === todayStr;
 
-      if (isToday && isWithinOperatingHours() && createdStr < todayStr && !todayStatus[s.id] && !todayExcused[s.id]) {
+      if (isToday && createdStr < todayStr && !todayStatus[s.id] && !todayExcused[s.id]) {
         todayStatus[s.id] = 'absent';
       }
 
