@@ -794,7 +794,7 @@ import Header from '../components/Header.astro';
 
   function isWithinOperatingHours(): boolean {
     const hour = new Date().getHours();
-    return hour >= 12 && hour < 21;
+    return hour >= 12 && hour <= 21;
   }
 
   type Student = { id: string; name: string; created_at: string };
@@ -983,7 +983,7 @@ import Header from '../components/Header.astro';
 
     if (sData) allStudents = sData;
 
-    if (todayDate.getDay() === 5) {
+    if (todayDate.getDay() === 5 && todayDate.getHours() < 13) {
       const thisWeekSatStr = dateStr(getWeekSaturday());
 
       await supabase
