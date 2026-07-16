@@ -931,7 +931,7 @@ import Header from '../components/Header.astro';
       todayExcused = {};
 
       const { data: att } = await supabase
-        .from('attendance_rows')
+        .from('attendance')
         .select('student_id, status')
         .eq('date', selectedDateStr);
       if (att) att.forEach((a: any) => { todayStatus[a.student_id] = a.status; });
@@ -994,7 +994,7 @@ import Header from '../components/Header.astro';
       const thisWeekSatStr = dateStr(getWeekSaturday());
 
       await supabase
-        .from('attendance_rows')
+        .from('attendance')
         .delete()
         .eq('week_start', thisWeekSatStr);
 
@@ -1005,7 +1005,7 @@ import Header from '../components/Header.astro';
     }
 
     const { data: todayAtt } = await supabase
-      .from('attendance_rows')
+      .from('attendance')
       .select('student_id, status')
       .eq('date', todayStr);
 
@@ -1026,7 +1026,7 @@ import Header from '../components/Header.astro';
     for (const wd of weekDates) {
       const ds = dateStr(wd);
       const { data: att } = await supabase
-        .from('attendance_rows')
+        .from('attendance')
         .select('student_id, status')
         .eq('date', ds);
 
@@ -1283,7 +1283,7 @@ import Header from '../components/Header.astro';
     try {
       const selectedWeekSat = dateStr(getWeekSaturdayFor(new Date(selectedDateStr + 'T00:00:00')));
 
-      const { error: delErr } = await supabase.from('attendance_rows').delete().eq('date', selectedDateStr);
+      const { error: delErr } = await supabase.from('attendance').delete().eq('date', selectedDateStr);
       if (delErr) {
         console.error('Delete attendance error:', delErr);
         throw delErr;
@@ -1295,7 +1295,7 @@ import Header from '../components/Header.astro';
           student_id: sid, date: selectedDateStr, status, week_start: selectedWeekSat,
         }));
       if (records.length > 0) {
-        const { error } = await supabase.from('attendance_rows').insert(records);
+        const { error } = await supabase.from('attendance').insert(records);
         if (error) {
           console.error('Insert attendance error:', error);
           throw error;
