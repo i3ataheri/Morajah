@@ -1102,7 +1102,7 @@ import Header from '../components/Header.astro';
 
     if (sData) allStudents = sData;
 
-    if (todayDate.getDay() === 5 && todayDate.getHours() < 13) {
+    if (todayDate.getDay() === 5) {
       const thisWeekSatStr = dateStr(getWeekSaturday());
 
       await supabase
@@ -1341,7 +1341,7 @@ import Header from '../components/Header.astro';
         const dayExc = weekExcused[ds] || {};
 
         if (createdStr > ds) return '🔁';
-        if (ds > todayStr) return '⬜';
+        if (ds > todayStr) return '';
         if (dayExc[s.id]) return '⏳';
         if (dayStatus[s.id] === 'present') return '✅';
         return '❌';
