@@ -1173,7 +1173,11 @@ import Header from '../components/Header.astro';
       const createdStr = dateStr(createdDate);
       const isNew = createdStr === todayStr;
 
-      if (isToday && createdStr < todayStr && !todayStatus[s.id] && !todayExcused[s.id]) {
+      if (isToday && createdStr <= todayStr && !todayStatus[s.id] && !todayExcused[s.id]) {
+        todayStatus[s.id] = 'absent';
+      }
+
+      if (isPastDate && createdStr <= selectedDateStr && !todayStatus[s.id] && !todayExcused[s.id]) {
         todayStatus[s.id] = 'absent';
       }
 
@@ -1285,6 +1289,9 @@ import Header from '../components/Header.astro';
         if (createdStr > ds) {
           return '<td class="wt-cell"><span class="wt-badge new-member">جديد</span></td>';
         }
+        if (ds > todayStr) {
+          return '<td class="wt-cell"></td>';
+        }
         if (dayExc[s.id]) {
           return '<td class="wt-cell"><span class="wt-badge excused">⚠️</span></td>';
         }
@@ -1334,6 +1341,7 @@ import Header from '../components/Header.astro';
         const dayExc = weekExcused[ds] || {};
 
         if (createdStr > ds) return '🔁';
+        if (ds > todayStr) return '⬜';
         if (dayExc[s.id]) return '⏳';
         if (dayStatus[s.id] === 'present') return '✅';
         return '❌';

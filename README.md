@@ -1,43 +1,89 @@
-# Astro Starter Kit: Minimal
+<div dir="rtl" align="right" style="font-family: 'Vazirmatn', sans-serif;">
 
-```sh
-npm create astro@latest -- --template minimal
-```
+# نظام الحضور والغياب — الحلقة
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+نظام إلكتروني لتسجيل حضور وغياب الطالبات في حلقة المراجعة اليومية.
 
-## 🚀 Project Structure
+الموقع: https://morajah.vercel.app
 
-Inside of your Astro project, you'll see the following folders and files:
+---
 
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
-```
+## دليل الاستخدام
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+### كيف تدخلين الموقع
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+١. افتحي الموقع في المتصفح
+٢. اختاري تبويب اليومي — ستظهر لك نافذة طلب الرمز
+٣. أدخلي رمز الدخول الخاص بك (٤ أرقام)
+٤. عند الدخول لأول مرة، ستدخلين مباشرة إلى صفحة تسجيل الحضور
 
-Any static assets, like images, can be placed in the `public/` directory.
+---
 
-## 🧞 Commands
+### كيف تسجلين حضور الطالبات (اليومي)
 
-All commands are run from the root of the project, from a terminal:
+١. بعد الدخول، سترين قائمة الطالبات
+٢. لكل طالبة زرين:
+- حاضرة — اضغطيها إذا كانت الطالبة حاضرة
+- عذر — اضغطيها إذا كان لدى الطالبة عذر موجه
+٣. إذا لم تضغطي أي زر، ستُسجل الطالبة تلقائياً كغائبة
+٤. عند الانتهاء، اضغطي حفظ الحضور والغياب
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
+ملاحظة: يمكنك تغيير يوم الحضور عن طريق الضغط على أي يوم من الأيام الخمسة المعروضة (السبت إلى الخميس). الجمعة دائماً عطلة.
 
-## 👀 Want to learn more?
+---
 
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+### كيف تشاهدين الجدول الأسبوعي
+
+١. اضغطي تبويب الأسبوعي من النوار السفلي
+٢. سترين جدول الطالبات مع حالتهن لكل يوم في الأسبوع
+٣. الرموز المستخدمة:
+- علامة صح = حاضرة
+- علامة خطأ = غائبة
+- علامة تعجب = عذر موجه
+- علامة جديد = عضوة جديدة
+
+---
+
+### كيف تنسخين القائمة
+
+١. في تبويب الأسبوعي، اضغطي نسخ القائمة
+٢. سيُطلب منك الرمز مرة أخرى للتأكيد
+٣. بعد التأكيد، ستظهر لك معاينة النسخة
+٤. اضغطي على المعاينة لنسخها
+٥. الصقيها في واتساب أو أي تطبيق آخر
+
+---
+
+### كيف تفتحين أو تغلقين السبت
+
+١. في تبويب الأسبوعي، ستجدين زر السبت بجانب معلومات الأسبوع
+٢. اضغطي عليه وادخلي الرمز
+٣. إذا كان السبت مغلقاً (تعطيل)، اضغطي لفتحه
+٤. إذا كان مفتوحاً، اضغطي لإغلاقه
+
+ملاحظة: في بعض الأسابيع السبت درس وفي بعضها عطلة. تأكدي من تفعيله قبل تسجيل الحضور.
+
+---
+
+## معلومات مهمة
+
+النظام مفتوح على مدار الساعة — يمكنك الدخول في أي وقت
+
+الجمعة دائماً عطلة — لا يمكن تسجيل حضور يوم الجمعة
+
+البيانات تُحفظ تلقائياً — عند الضغط على حفظ
+
+الطالبات الجدد — تظهر لهن علامة جديد بجانب أسمائهن
+
+الخروج — اضغطي زر خروج في أعلى الصفحة للعودة لصفحة تسجيل الدخول
+
+---
+
+## التقنيات المستخدمة
+
+- Astro — إطار العمل
+- Supabase — قاعدة البيانات
+- SCSS — التنسيقات
+- TypeScript — لغة البرمجة
+
+</div>
